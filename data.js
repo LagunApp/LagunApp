@@ -16,7 +16,7 @@ const QUIZ_DATA = {
   sport: [
     "⚽ Futbola","🏀 Saskibaloia","🎾 Tenisa","🏊 Igeriketa","🚴 Txirrindularitza",
     "🏔️ Mendizaletasuna","🏋️ Gimnasioa","💃 Dantza","🏄 Surf","🧘 Yoga",
-    "🏸 Padela","🏃 Korrika","🥊 Boxeo","🎿 Eskia","🏐 Boleibola",
+    "🏸 Padela","🏃 Korrika","🥊 Boxeo", "Eskubaloia","🎿 Eskia","🏐 Boleibola",
     "😴 Ez dut kirola egiten",
   ],
   free: [
@@ -28,7 +28,7 @@ const QUIZ_DATA = {
   music: [
     "🎤 Pop","🎸 Rock","🎵 Indie","🎧 Hip-Hop/Trap","💿 Elektronika/EDM",
     "🎷 Jazz","🎻 Klasikoa","🎺 Reggaeton","🤘 Metal","🌍 Munduko musika",
-    "🇪🇸 Euskal Musika","🎙️ Rap","🌊 Reggae","🎹 R&B / Soul",
+    " Euskal Musika","🎙️ Rap","🌊 Reggae","🎹 R&B / Soul",
   ],
   personality: [
     "😄 Alaia eta baikorra","😂 Umorea gustatzen zait","😌 Lasaia eta orekatua",
