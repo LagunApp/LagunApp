@@ -16,7 +16,7 @@ const QUIZ_DATA = {
   sport: [
     "⚽ Futbola","🏀 Saskibaloia","🎾 Tenisa","🏊 Igeriketa","🚴 Txirrindularitza",
     "🏔️ Mendizaletasuna","🏋️ Gimnasioa","💃 Dantza","🏄 Surf","🧘 Yoga",
-    "🏸 Padela","🏃 Korrika","🥊 Boxeo", "Eskubaloia","🎿 Eskia","🏐 Boleibola",
+    "🏸 Padela","🏃 Korrika","🥊 Boxeo","Eskubaloia","🎿 Eskia","🏐 Boleibola",
     "😴 Ez dut kirola egiten",
   ],
   free: [
