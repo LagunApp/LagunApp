@@ -191,10 +191,12 @@
 <body>
 
 <!-- ══════════════════════ SPLASH SCREEN ══════════════════════ -->
-<div id="splash-screen" style="position:fixed; inset:0; z-index:9999; background:#fefab6; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease;">
-  <div style="text-align:center;">
-    <img src="lagunapp (1).png" alt="LagunApp Logo" style="width:300px; height:auto; display:block; margin: 0 auto;">
-    <h1 style="font-size:3.5rem; font-weight:800; color:#111; margin-top:20px; font-family:'Poppins', sans-serif;">LAGUNAPP</h1>
+<div id="splash-screen" style="position:fixed; inset:0; z-index:9999; background-image: url('lagunapp.png'); background-size: cover; background-position: center; background-repeat: no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease;">
+  
+  <button id="btn-splash-continue" style="margin-top:300px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden; padding: 12px 35px; border-radius: 50px; background: #1b4332; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+    Seguir →
+  </button>
+</div>
     
     <!-- Botón que aparecerá después -->
     <button id="btn-splash-continue" style="margin-top:40px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden;" class="btn-g">
