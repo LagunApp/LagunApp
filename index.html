@@ -4,6 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LagunApp</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://TUPROYECTO.supabase.co';
+  const SUPABASE_KEY = 'TU_ANON_KEY';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+
+
+  
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -825,12 +835,20 @@ function nextStep(n){
 
 function prevStep(n){ goToStep(n-1); }
 
-function finishQuiz(){
-  const step=document.getElementById('qs-7');
-  const plans=getSelected(step,'plans');
-  if(plans.length===0){showToast('❗ Hautatu gutxienez plan bat');return;}
-  currentUser.plans=plans;
-  localStorage.setItem('lagunapp_user', JSON.stringify(currentUser));
+async function finishQuiz() {
+  const step = document.getElementById('qs-7');
+  const plans = getSelected(step, 'plans');
+  if (plans.length === 0) { showToast('❗ Hautatu gutxienez plan bat'); return; }
+  currentUser.plans = plans;
+
+  await sb.from('profiles').upsert({
+    id: currentUser.id,
+    name: currentUser.name, username: currentUser.username,
+    age: currentUser.age, city: currentUser.city, gender: currentUser.gender,
+    bio: currentUser.bio || '',
+    food: currentUser.food, sport: currentUser.sport, free: currentUser.free,
+    music: currentUser.music, pers: currentUser.pers, plans: currentUser.plans
+  });
   enterApp();
 }
 
