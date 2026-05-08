@@ -743,32 +743,36 @@ function switchTab(t){
   }
 }
 
-function doLogin(){
-  const email=document.getElementById('li-email').value.trim();
-  const pass=document.getElementById('li-pass').value.trim();
-  if(!email||!pass){showToast('❗ Bete eremu guztiak');return;}
-  const saved = JSON.parse(localStorage.getItem('lagunapp_user')||'null');
-  if(saved && saved.email===email && saved.pass===pass){
-    currentUser=saved;
-    enterApp();
-  } else {
-    showToast('❌ Email edo pasahitza okerrak');
-  }
+async function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass = document.getElementById('li-pass').value.trim();
+  if (!email || !pass) { showToast('❗ Bete eremu guztiak'); return; }
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { showToast('❌ ' + error.message); return; }
+
+  // Cargar perfil de la base de datos
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+  currentUser = { ...profile, id: data.user.id };
+  enterApp();
 }
 
-function doRegister(){
-  const name=document.getElementById('reg-name').value.trim();
-  const username=document.getElementById('reg-user').value.trim();
-  const email=document.getElementById('reg-email').value.trim();
-  const pass=document.getElementById('reg-pass').value.trim();
-  if(!name||!username||!email||!pass){showToast('❗ Bete eremu guztiak');return;}
-  if(pass.length<6){showToast('❗ Pasahitzak 6 karaktere behar ditu gutxienez');return;}
-  currentUser = {name, username, email, pass,
-    age:0, city:'', gender:'', bio:'', food:[], sport:[], free:[], music:[], pers:[], plans:[], photoData:null};
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-user').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value.trim();
+  if (!name || !username || !email || !pass) { showToast('❗ Bete eremu guztiak'); return; }
+
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  if (error) { showToast('❌ ' + error.message); return; }
+
+  // Guardar perfil básico
+  await sb.from('profiles').insert({ id: data.user.id, name, username, email });
+  currentUser = { id: data.user.id, name, username, email };
   showScreen('sc-quiz');
   goToStep(1);
 }
-
 function doLogout(){
   currentUser=null; chats={}; groups=[];
   showScreen('sc-login');
