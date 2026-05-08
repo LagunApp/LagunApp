@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LagunApp</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ⚠️ ALDATU HAUEK zure Supabase proiektuarekin:
+    const SUPABASE_URL = 'https://ZURE_PROIEKTUA.supabase.co';
+    const SUPABASE_KEY = 'ZURE_ANON_KEY';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     *{font-family:'Poppins',sans-serif;box-sizing:border-box;}
@@ -194,13 +201,13 @@
 <div id="splash-screen" style="position:fixed; inset:0; z-index:9999; background-image: url('lagunapp.png'); background-size: cover; background-position: center; background-repeat: no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease;">
   
   <button id="btn-splash-continue" style="margin-top:300px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden; padding: 12px 35px; border-radius: 50px; background: #1b4332; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-    Seguir →
+    Segui →
   </button>
 </div>
     
     <!-- Botón que aparecerá después -->
     <button id="btn-splash-continue" style="margin-top:40px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden;" class="btn-g">
-      Seguir →
+      Segui →
     </button>
   </div>
 </div>
@@ -743,33 +750,37 @@ function switchTab(t){
   }
 }
 
-function doLogin(){
+async function doLogin(){
   const email=document.getElementById('li-email').value.trim();
   const pass=document.getElementById('li-pass').value.trim();
   if(!email||!pass){showToast('❗ Bete eremu guztiak');return;}
-  const saved = JSON.parse(localStorage.getItem('lagunapp_user')||'null');
-  if(saved && saved.email===email && saved.pass===pass){
-    currentUser=saved;
-    enterApp();
-  } else {
-    showToast('❌ Email edo pasahitza okerrak');
-  }
+  showToast('⏳ Sartzen...');
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){showToast('❌ '+error.message);return;}
+  const {data:profile}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
+  if(!profile){showToast('❌ Ez da profila aurkitu');return;}
+  currentUser={...profile};
+  enterApp();
 }
 
-function doRegister(){
+async function doRegister(){
   const name=document.getElementById('reg-name').value.trim();
   const username=document.getElementById('reg-user').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pass=document.getElementById('reg-pass').value.trim();
   if(!name||!username||!email||!pass){showToast('❗ Bete eremu guztiak');return;}
   if(pass.length<6){showToast('❗ Pasahitzak 6 karaktere behar ditu gutxienez');return;}
-  currentUser = {name, username, email, pass,
-    age:0, city:'', gender:'', bio:'', food:[], sport:[], free:[], music:[], pers:[], plans:[], photoData:null};
+  showToast('⏳ Erregistratzen...');
+  const {data,error}=await sb.auth.signUp({email,password:pass});
+  if(error){showToast('❌ '+error.message);return;}
+  await sb.from('profiles').insert({id:data.user.id,name,username,email,age:0,city:'',gender:'',bio:'',food:[],sport:[],free:[],music:[],pers:[],plans:[],photo_url:null});
+  currentUser={id:data.user.id,name,username,email,age:0,city:'',gender:'',bio:'',food:[],sport:[],free:[],music:[],pers:[],plans:[],photoData:null};
   showScreen('sc-quiz');
   goToStep(1);
 }
 
-function doLogout(){
+async function doLogout(){
+  await sb.auth.signOut();
   currentUser=null; chats={}; groups=[];
   showScreen('sc-login');
 }
@@ -821,12 +832,20 @@ function nextStep(n){
 
 function prevStep(n){ goToStep(n-1); }
 
-function finishQuiz(){
+async function finishQuiz(){
   const step=document.getElementById('qs-7');
   const plans=getSelected(step,'plans');
   if(plans.length===0){showToast('❗ Hautatu gutxienez plan bat');return;}
   currentUser.plans=plans;
-  localStorage.setItem('lagunapp_user', JSON.stringify(currentUser));
+  showToast('⏳ Gordetzen...');
+  await sb.from('profiles').upsert({
+    id:currentUser.id,
+    name:currentUser.name,username:currentUser.username,
+    age:currentUser.age,city:currentUser.city,gender:currentUser.gender,
+    bio:currentUser.bio||'',
+    food:currentUser.food,sport:currentUser.sport,free:currentUser.free,
+    music:currentUser.music,pers:currentUser.pers,plans:currentUser.plans
+  });
   enterApp();
 }
 
@@ -838,6 +857,7 @@ function enterApp(){
   renderTopbar();
   renderDiscover();
   renderMyProfile();
+  subscribeToMessages();
   renderChatList();
   renderGroups();
   switchView('discover');
@@ -902,11 +922,11 @@ function calcMatch(u){
   return Math.min(Math.round(score*1.1)+30,99);
 }
 
-function renderDiscover(){
+async function renderDiscover(){
   const grid=document.getElementById('discover-grid');
-  // TODO: replace with real users from backend
-  const allUsers = typeof demoUsers !== 'undefined' ? demoUsers : [];
-  let users=[...allUsers];
+  grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:#9ca3af;">⏳ Kargatzen...</div>';
+  const {data:allUsers}=await sb.from('profiles').select('*').neq('id',currentUser.id);
+  let users=[...(allUsers||[])];
   if(searchTerm) users=users.filter(u=>u.name.toLowerCase().includes(searchTerm)||u.city.toLowerCase().includes(searchTerm));
   if(discoverFilter!=='all') users=users.filter(u=>(u[discoverFilter]||[]).length>0);
   users=users.map(u=>({...u,match:calcMatch(u)})).sort((a,b)=>b.match-a.match);
@@ -919,11 +939,11 @@ function renderDiscover(){
   grid.innerHTML=users.map(u=>{
     const tags=[...(u.sport||[]).slice(0,1),...(u.music||[]).slice(0,1),...(u.free||[]).slice(0,1)];
     return `
-    <div class="profile-card" onclick="openProfileModal(${u.id})">
+    <div class="profile-card" onclick="openProfileModal('${u.id}')">
       <div class="card-header"></div>
       <div style="padding:0 16px 16px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div class="card-avatar bg-gradient-to-br ${u.color}">${u.photoData?`<img src="${u.photoData}"/>`:(u.avatar)}</div>
+          <div class="card-avatar bg-gradient-to-br from-green-300 to-green-700">${u.photo_url?`<img src="${u.photo_url}"/>`:(u.name?u.name[0].toUpperCase():'?')}</div>
           <div class="match-pill" style="margin-top:8px;">${u.match}% match</div>
         </div>
         <div style="margin-top:8px;">
@@ -940,14 +960,13 @@ function renderDiscover(){
 // ═══════════════════════════════════════════════════
 //  PROFILE MODAL
 // ═══════════════════════════════════════════════════
-function openProfileModal(id){
-  const allUsers = typeof demoUsers !== 'undefined' ? demoUsers : [];
-  const u=allUsers.find(x=>x.id===id);
+async function openProfileModal(id){
+  const {data:u}=await sb.from('profiles').select('*').eq('id',id).single();
   if(!u) return;
   currentModal=id;
   const av=document.getElementById('pm-avatar');
-  av.className=`modal-avatar bg-gradient-to-br ${u.color}`;
-  av.innerHTML=u.photoData?`<img src="${u.photoData}"/>`:(u.avatar);
+  av.className='modal-avatar bg-gradient-to-br from-green-300 to-green-700';
+  av.innerHTML=u.photo_url?`<img src="${u.photo_url}"/>`:(u.name?u.name[0].toUpperCase():'?');
   document.getElementById('pm-name').textContent=u.name;
   document.getElementById('pm-sub').textContent=`${u.city} · ${u.age} urte · ${u.gender}`;
   document.getElementById('pm-bio').textContent=u.bio;
@@ -1051,30 +1070,48 @@ function renderChatWindow(){
   msgs.scrollTop=msgs.scrollHeight;
 }
 
-function sendMessage(){
+async function sendMessage(){
   const inp=document.getElementById('chat-msg-input');
   const text=inp.value.trim();
   if(!text||!activeChatId) return;
+  inp.value='';
   const now=new Date();
   const time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
   const isGroup=activeChatId.startsWith('g-');
   if(isGroup){
     const gid=activeChatId.replace('g-','');
+    await sb.from('group_messages').insert({group_id:gid,sender_id:currentUser.id,text});
     const g=groups.find(x=>x.id===gid);
     if(g) g.messages.push({from:'me',text,time});
   } else {
-    const uid=parseInt(activeChatId.replace('u-',''));
+    const uid=activeChatId.replace('u-','');
+    await sb.from('messages').insert({sender_id:currentUser.id,receiver_id:uid,text});
     if(!chats[uid]) chats[uid]=[];
     chats[uid].push({from:'me',text,time});
-    // Auto-reply eliminado — los mensajes reales vendrán del backend
   }
-  inp.value='';
   renderChatWindow();
   renderChatList();
 }
 
+let realtimeChannel=null;
+function subscribeToMessages(){
+  if(realtimeChannel) sb.removeChannel(realtimeChannel);
+  realtimeChannel=sb.channel('inbox')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`receiver_id=eq.${currentUser.id}`},payload=>{
+      const m=payload.new;
+      const uid=m.sender_id;
+      if(!chats[uid]) chats[uid]=[];
+      const now=new Date(m.created_at);
+      const time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+      chats[uid].push({from:uid,text:m.text,time});
+      renderChatList();
+      if(activeChatId==='u-'+uid) renderChatWindow();
+    })
+    .subscribe();
+}
+
 function startChatWith(id){
-  const uid=parseInt(id);
+  const uid=id;
   if(!chats[uid]) chats[uid]=[];
   closeProfileModal();
   switchView('chat');
@@ -1222,12 +1259,12 @@ function handleEditPhoto(event){
   };
   reader.readAsDataURL(file);
 }
-function saveEditProfile(){
+async function saveEditProfile(){
   const age=parseInt(document.getElementById('edit-age').value);
   if(age&&(age<16||age>99)){showToast('❗ Adina 16-99 artean izan behar da');return;}
   if(age) currentUser.age=age;
   currentUser.bio=document.getElementById('edit-bio').value.trim();
-  localStorage.setItem('lagunapp_user',JSON.stringify(currentUser));
+  await sb.from('profiles').update({age:currentUser.age,bio:currentUser.bio,photo_url:currentUser.photo_url||null}).eq('id',currentUser.id);
   document.getElementById('modal-edit').style.display='none';
   renderMyProfile();
   renderTopbar();
