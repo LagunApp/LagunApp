@@ -4,16 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LagunApp</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const SUPABASE_URL = 'https://TUPROYECTO.supabase.co';
-  const SUPABASE_KEY = 'TU_ANON_KEY';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-</script>
-
-
-  
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -204,13 +194,13 @@
 <div id="splash-screen" style="position:fixed; inset:0; z-index:9999; background-image: url('lagunapp.png'); background-size: cover; background-position: center; background-repeat: no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease;">
   
   <button id="btn-splash-continue" style="margin-top:300px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden; padding: 12px 35px; border-radius: 50px; background: #1b4332; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-    Segui →
+    Seguir →
   </button>
 </div>
     
     <!-- Botón que aparecerá después -->
     <button id="btn-splash-continue" style="margin-top:40px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden;" class="btn-g">
-      Segui →
+      Seguir →
     </button>
   </div>
 </div>
@@ -753,36 +743,32 @@ function switchTab(t){
   }
 }
 
-async function doLogin() {
-  const email = document.getElementById('li-email').value.trim();
-  const pass = document.getElementById('li-pass').value.trim();
-  if (!email || !pass) { showToast('❗ Bete eremu guztiak'); return; }
-
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-  if (error) { showToast('❌ ' + error.message); return; }
-
-  // Cargar perfil de la base de datos
-  const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
-  currentUser = { ...profile, id: data.user.id };
-  enterApp();
+function doLogin(){
+  const email=document.getElementById('li-email').value.trim();
+  const pass=document.getElementById('li-pass').value.trim();
+  if(!email||!pass){showToast('❗ Bete eremu guztiak');return;}
+  const saved = JSON.parse(localStorage.getItem('lagunapp_user')||'null');
+  if(saved && saved.email===email && saved.pass===pass){
+    currentUser=saved;
+    enterApp();
+  } else {
+    showToast('❌ Email edo pasahitza okerrak');
+  }
 }
 
-async function doRegister() {
-  const name = document.getElementById('reg-name').value.trim();
-  const username = document.getElementById('reg-user').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const pass = document.getElementById('reg-pass').value.trim();
-  if (!name || !username || !email || !pass) { showToast('❗ Bete eremu guztiak'); return; }
-
-  const { data, error } = await sb.auth.signUp({ email, password: pass });
-  if (error) { showToast('❌ ' + error.message); return; }
-
-  // Guardar perfil básico
-  await sb.from('profiles').insert({ id: data.user.id, name, username, email });
-  currentUser = { id: data.user.id, name, username, email };
+function doRegister(){
+  const name=document.getElementById('reg-name').value.trim();
+  const username=document.getElementById('reg-user').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value.trim();
+  if(!name||!username||!email||!pass){showToast('❗ Bete eremu guztiak');return;}
+  if(pass.length<6){showToast('❗ Pasahitzak 6 karaktere behar ditu gutxienez');return;}
+  currentUser = {name, username, email, pass,
+    age:0, city:'', gender:'', bio:'', food:[], sport:[], free:[], music:[], pers:[], plans:[], photoData:null};
   showScreen('sc-quiz');
   goToStep(1);
 }
+
 function doLogout(){
   currentUser=null; chats={}; groups=[];
   showScreen('sc-login');
@@ -835,20 +821,12 @@ function nextStep(n){
 
 function prevStep(n){ goToStep(n-1); }
 
-async function finishQuiz() {
-  const step = document.getElementById('qs-7');
-  const plans = getSelected(step, 'plans');
-  if (plans.length === 0) { showToast('❗ Hautatu gutxienez plan bat'); return; }
-  currentUser.plans = plans;
-
-  await sb.from('profiles').upsert({
-    id: currentUser.id,
-    name: currentUser.name, username: currentUser.username,
-    age: currentUser.age, city: currentUser.city, gender: currentUser.gender,
-    bio: currentUser.bio || '',
-    food: currentUser.food, sport: currentUser.sport, free: currentUser.free,
-    music: currentUser.music, pers: currentUser.pers, plans: currentUser.plans
-  });
+function finishQuiz(){
+  const step=document.getElementById('qs-7');
+  const plans=getSelected(step,'plans');
+  if(plans.length===0){showToast('❗ Hautatu gutxienez plan bat');return;}
+  currentUser.plans=plans;
+  localStorage.setItem('lagunapp_user', JSON.stringify(currentUser));
   enterApp();
 }
 
