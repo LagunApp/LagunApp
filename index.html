@@ -5,43 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LagunApp</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // ⚠️ ALDATU HAUEK zure Supabase proiektuarekin:
-    const SUPABASE_URL = 'https://jxqxkhhyjgfrkjndjhqp.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_RacUCvzpUb22UdIsopf1uA_WxB227p_';
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  </script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy,
+      onSnapshot, addDoc, serverTimestamp, updateDoc }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCqPA6S71A0EDJ1DqFTfRlIF0jKB8VtSbI",
+      authDomain: "lagunapp-60826.firebaseapp.com",
+      projectId: "lagunapp-60826",
+      storageBucket: "lagunapp-60826.firebasestorage.app",
+      messagingSenderId: "678497454306",
+      appId: "1:678497454306:web:227008e9e6701587d836bb",
+      measurementId: "G-4FW17G6XF6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Expose globals
+    window._auth = auth;
+    window._db = db;
+    window._firebase = {
+      createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+      onAuthStateChanged, doc, setDoc, getDoc, getDocs, collection, query,
+      where, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc
+    };
+    window._firebaseReady = true;
+    document.dispatchEvent(new Event('firebaseReady'));
+  </script>
+
   <style>
     *{font-family:'Poppins',sans-serif;box-sizing:border-box;}
     body{background:#f0f7f4;margin:0;}
-
-  /* Animación para que el botón aparezca suavemente */
-.btn-visible {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    visibility: visible !important;
-}
-
-/* Efecto de desvanecimiento para toda la pantalla */
-.splash-fade-out {
-    opacity: 0;
-    pointer-events: none;
-}
-
-    /* COLORS */
+    .btn-visible{opacity:1!important;transform:translateY(0)!important;visibility:visible!important;}
+    .splash-fade-out{opacity:0;pointer-events:none;}
     :root{--g1:#1b4332;--g2:#2d6a4f;--g3:#52b788;--g4:#74c69d;--g5:#d8f3dc;}
-
-    /* SCROLLBAR */
     ::-webkit-scrollbar{width:5px;height:5px;}
     ::-webkit-scrollbar-thumb{background:#52b788;border-radius:10px;}
-
-    /* PAGES */
     .screen{display:none;min-height:100vh;}
     .screen.active{display:flex;}
-
-    /* AUTH */
     .auth-left{background:linear-gradient(160deg,#1b4332 0%,#2d6a4f 50%,#52b788 100%);flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden;}
     .auth-left::before{content:'';position:absolute;top:-100px;right:-100px;width:350px;height:350px;background:rgba(255,255,255,0.05);border-radius:50%;}
     .auth-left::after{content:'';position:absolute;bottom:-80px;left:-80px;width:250px;height:250px;background:rgba(255,255,255,0.04);border-radius:50%;}
@@ -49,7 +58,6 @@
     .logo-big{font-size:3rem;font-weight:800;color:#fff;letter-spacing:-1px;}
     .logo-big span{color:#74c69d;}
     .auth-tagline{color:#b7e4c7;font-size:1.05rem;margin-top:12px;text-align:center;line-height:1.6;max-width:320px;}
-
     .inp{width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:0.9rem;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;background:#f9fafb;color:#111;}
     .inp:focus{border-color:#52b788;background:#fff;}
     .lbl{display:block;font-weight:600;color:#1b4332;font-size:0.82rem;margin-bottom:5px;}
@@ -57,8 +65,6 @@
     .btn-g:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(82,183,136,.4);}
     .btn-outline{background:transparent;color:#52b788;font-weight:600;padding:11px 28px;border-radius:12px;border:2px solid #52b788;cursor:pointer;font-size:0.9rem;width:100%;transition:all .2s;}
     .btn-outline:hover{background:#f0fdf4;}
-
-    /* QUIZ */
     .quiz-wrap{background:#fff;border-radius:24px;padding:40px;max-width:560px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.1);}
     .quiz-step{display:none;}
     .quiz-step.active{display:block;}
@@ -66,33 +72,21 @@
     .opt-btn{padding:10px 18px;border-radius:50px;border:2px solid #e5e7eb;cursor:pointer;font-size:0.85rem;font-weight:500;color:#374151;transition:all .2s;background:#f9fafb;font-family:'Poppins',sans-serif;}
     .opt-btn.sel{background:linear-gradient(135deg,#52b788,#74c69d);border-color:#52b788;color:#fff;font-weight:700;}
     .opt-btn:hover:not(.sel){border-color:#52b788;color:#1b4332;}
-
-    /* MAIN APP */
     .app-shell{display:flex;height:100vh;width:100%;overflow:hidden;}
-
-    /* SIDEBAR */
     .sidebar{width:72px;background:linear-gradient(180deg,#1b4332 0%,#2d6a4f 100%);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:6px;flex-shrink:0;}
     .sb-btn{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;transition:all .2s;color:rgba(255,255,255,.6);border:none;background:transparent;}
     .sb-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
     .sb-btn.active{background:rgba(255,255,255,.15);color:#74c69d;box-shadow:0 4px 15px rgba(0,0,0,.2);}
     .sb-logo{font-size:1.3rem;font-weight:800;color:#74c69d;margin-bottom:16px;letter-spacing:-0.5px;}
-
-    /* MAIN PANEL */
     .main-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-
-    /* TOP BAR */
     .topbar{background:#fff;padding:0 24px;height:64px;display:flex;align-items:center;border-bottom:1px solid #e8f5e9;flex-shrink:0;gap:16px;}
     .topbar-title{font-size:1.2rem;font-weight:700;color:#1b4332;}
     .search-bar{flex:1;max-width:300px;position:relative;}
     .search-bar input{width:100%;padding:9px 16px 9px 36px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;font-family:'Poppins',sans-serif;outline:none;background:#f9fafb;color:#111;}
     .search-bar input:focus{border-color:#52b788;}
     .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:0.9rem;}
-
-    /* VIEWS */
     .view{display:none;flex:1;overflow-y:auto;padding:24px;}
     .view.active{display:block;}
-
-    /* CARDS */
     .profile-card{background:#fff;border-radius:20px;border:1px solid #e8f5e9;overflow:hidden;cursor:pointer;transition:all .25s;box-shadow:0 2px 12px rgba(0,0,0,.06);}
     .profile-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.12);}
     .card-header{height:70px;background:linear-gradient(135deg,#1b4332,#52b788);}
@@ -103,18 +97,15 @@
     .tag-b{background:#dbeafe;color:#1e40af;}
     .tag-p{background:#ede9fe;color:#5b21b6;}
     .tag-y{background:#fef9c3;color:#854d0e;}
-    .tag-r{background:#fee2e2;color:#991b1b;}
     .tag-pk{background:#fce7f3;color:#9d174d;}
     .match-pill{background:linear-gradient(135deg,#52b788,#74c69d);color:#fff;font-weight:700;font-size:0.75rem;padding:4px 10px;border-radius:50px;}
-
-    /* CHAT */
     .chat-layout{display:flex;height:100%;overflow:hidden;}
     .chat-list{width:300px;border-right:1px solid #e8f5e9;overflow-y:auto;flex-shrink:0;background:#fff;}
     .chat-list-header{padding:16px;font-weight:700;color:#1b4332;border-bottom:1px solid #f0f7f4;font-size:1rem;position:sticky;top:0;background:#fff;z-index:2;}
     .chat-item{padding:14px 16px;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f9fafb;}
     .chat-item:hover{background:#f0fdf4;}
     .chat-item.active{background:#e8f5e9;}
-    .chat-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:#fff;flex-shrink:0;overflow:hidden;}
+    .chat-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:#fff;flex-shrink:0;overflow:hidden;background:linear-gradient(135deg,#52b788,#1b4332);}
     .chat-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
     .chat-name{font-weight:600;font-size:0.88rem;color:#111;}
     .chat-preview{font-size:0.75rem;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
@@ -131,89 +122,33 @@
     .send-btn{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#52b788,#74c69d);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .2s;flex-shrink:0;}
     .send-btn:hover{transform:scale(1.1);}
     .no-chat{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#9ca3af;}
-
-    /* GROUPS */
     .group-card{background:#fff;border-radius:16px;border:1px solid #e8f5e9;padding:16px;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.05);}
     .group-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1);}
     .group-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
-
-    /* MODAL */
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
     .modal-box{background:#fff;border-radius:24px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:popIn .3s ease;}
     @keyframes popIn{from{opacity:0;transform:scale(.9) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
-
-    /* TOAST */
     .toast{position:fixed;bottom:28px;right:28px;background:linear-gradient(135deg,#1b4332,#2d6a4f);color:#fff;padding:14px 22px;border-radius:14px;font-weight:600;font-size:.9rem;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(100px);opacity:0;transition:all .4s cubic-bezier(.175,.885,.32,1.275);}
     .toast.show{transform:translateY(0);opacity:1;}
-
-    /* PROFILE VIEW MODAL */
     .modal-header-bg{height:100px;background:linear-gradient(135deg,#1b4332,#52b788);}
-    .modal-avatar{width:80px;height:80px;border-radius:50%;border:4px solid #fff;margin-top:-40px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.6rem;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden;flex-shrink:0;}
+    .modal-avatar{width:80px;height:80px;border-radius:50%;border:4px solid #fff;margin-top:-40px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.6rem;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#52b788,#1b4332);}
     .modal-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-
-    /* ONLINE DOT */
-    .online-dot{width:10px;height:10px;background:#22c55e;border-radius:50%;border:2px solid #fff;position:absolute;bottom:2px;right:2px;}
-
-    /* GROUP CREATE MODAL */
     .member-check{display:none;}
     .member-label{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;cursor:pointer;transition:background .15s;border:1.5px solid #e5e7eb;}
     .member-check:checked+.member-label{background:#e8f5e9;border-color:#52b788;}
-
-    @media(max-width:768px){
-      .auth-left{display:none;}
-      .auth-right{padding:24px;}
-      .chat-list{width:220px;}
-    }
-    @media(max-width:600px){
-      .sidebar{width:56px;}
-      .sb-btn{width:40px;height:40px;font-size:1.2rem;}
-      .chat-list{width:180px;}
-      .chat-preview{max-width:100px;}
-    }
+    /* setup screen */
+    #sc-setup{align-items:center;justify-content:center;background:linear-gradient(135deg,#1b4332,#52b788);flex-direction:column;gap:16px;color:#fff;text-align:center;padding:40px;}
+    #sc-setup code{background:rgba(255,255,255,.15);padding:4px 10px;border-radius:8px;font-family:monospace;font-size:.85rem;}
+    @media(max-width:768px){.auth-left{display:none;}.auth-right{padding:24px;}.chat-list{width:220px;}}
+    @media(max-width:600px){.sidebar{width:56px;}.sb-btn{width:40px;height:40px;font-size:1.2rem;}.chat-list{width:180px;}.chat-preview{max-width:100px;}}
   </style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const splash = document.getElementById('splash-screen');
-    const splashBtn = document.getElementById('btn-splash-continue');
-
-    // Muestra el botón después de 2 segundos
-    setTimeout(() => {
-      if(splashBtn) splashBtn.classList.add('btn-visible');
-    }, 2000);
-
-    // Al hacer clic, desvanece la pantalla
-    if(splashBtn) {
-      splashBtn.addEventListener('click', () => {
-        splash.classList.add('splash-fade-out');
-        setTimeout(() => {
-          splash.style.display = 'none';
-        }, 800);
-      });
-    }
-  });
-</script>
-  
 </head>
 <body>
 
-<!-- ══════════════════════ SPLASH SCREEN ══════════════════════ -->
-<div id="splash-screen" style="position:fixed; inset:0; z-index:9999; background-image: url('lagunapp.png'); background-size: cover; background-position: center; background-repeat: no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease;">
-  
-  <button id="btn-splash-continue" style="margin-top:300px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden; padding: 12px 35px; border-radius: 50px; background: #1b4332; color: white; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-    Segui →
-  </button>
-</div>
-    
-    <!-- Botón que aparecerá después -->
-    <button id="btn-splash-continue" style="margin-top:40px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden;" class="btn-g">
-      Segui →
-    </button>
-  </div>
-</div>
 
-<!-- ══════════════════════ SCREEN: LOGIN ══════════════════════ -->
-<div id="sc-login" class="screen active" style="flex-direction:row;">
+
+<!-- ══════════ SCREEN: LOGIN ══════════ -->
+<div id="sc-login" class="screen" style="flex-direction:row;">
   <div class="auth-left">
     <div style="position:relative;z-index:1;text-align:center;">
       <div class="logo-big">Lagun<span>App</span></div>
@@ -231,7 +166,7 @@
         </div>
         <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:16px 20px;text-align:left;">
           <div style="font-size:1.3rem;">🔒</div>
-          <div style="color:#fff;font-weight:600;font-size:.9rem;margin-top:4px;">Pribatuaa eta segurua</div>
+          <div style="color:#fff;font-weight:600;font-size:.9rem;margin-top:4px;">Pribatua eta segurua</div>
           <div style="color:#b7e4c7;font-size:.8rem;margin-top:2px;">Zuk kontrolatzen duzu</div>
         </div>
       </div>
@@ -241,14 +176,10 @@
     <div style="max-width:380px;width:100%;">
       <h2 style="font-size:1.8rem;font-weight:800;color:#1b4332;margin-bottom:6px;">Ongi etorri! 👋</h2>
       <p style="color:#6b7280;font-size:.9rem;margin-bottom:28px;">Sartu zure kontura edo sortu bat</p>
-
-      <!-- TABS -->
       <div style="display:flex;background:#f3f4f6;border-radius:12px;padding:4px;margin-bottom:24px;">
         <button id="tab-login" onclick="switchTab('login')" style="flex:1;padding:9px;border-radius:9px;border:none;font-family:'Poppins',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;background:#fff;color:#1b4332;box-shadow:0 1px 6px rgba(0,0,0,.1);transition:all .2s;">Hasi saioa</button>
         <button id="tab-reg" onclick="switchTab('reg')" style="flex:1;padding:9px;border-radius:9px;border:none;font-family:'Poppins',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;background:transparent;color:#6b7280;transition:all .2s;">Erregistratu</button>
       </div>
-
-      <!-- LOGIN FORM -->
       <div id="form-login">
         <div style="margin-bottom:16px;">
           <label class="lbl">📧 Email-a</label>
@@ -263,41 +194,25 @@
           Konturik ez? <span style="color:#52b788;cursor:pointer;font-weight:600;" onclick="switchTab('reg')">Erregistratu hemen</span>
         </p>
       </div>
-
-      <!-- REGISTER FORM -->
       <div id="form-reg" style="display:none;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-          <div>
-            <label class="lbl">👤 Izena</label>
-            <input id="reg-name" type="text" class="inp" placeholder="Zure izena"/>
-          </div>
-          <div>
-            <label class="lbl">🔑 Erabiltzaile-izena</label>
-            <input id="reg-user" type="text" class="inp" placeholder="@izena"/>
-          </div>
+          <div><label class="lbl">👤 Izena</label><input id="reg-name" type="text" class="inp" placeholder="Zure izena"/></div>
+          <div><label class="lbl">🔑 Erabiltzaile-izena</label><input id="reg-user" type="text" class="inp" placeholder="@izena"/></div>
         </div>
-        <div style="margin-bottom:12px;">
-          <label class="lbl">📧 Email-a</label>
-          <input id="reg-email" type="email" class="inp" placeholder="izena@email.com"/>
-        </div>
-        <div style="margin-bottom:20px;">
-          <label class="lbl">🔒 Pasahitza</label>
-          <input id="reg-pass" type="password" class="inp" placeholder="Min. 6 karaktere"/>
-        </div>
+        <div style="margin-bottom:12px;"><label class="lbl">📧 Email-a</label><input id="reg-email" type="email" class="inp" placeholder="izena@email.com"/></div>
+        <div style="margin-bottom:20px;"><label class="lbl">🔒 Pasahitza</label><input id="reg-pass" type="password" class="inp" placeholder="Min. 6 karaktere"/></div>
         <button class="btn-g" onclick="doRegister()">Kontu sortu ✨</button>
         <p style="text-align:center;margin-top:16px;font-size:.82rem;color:#9ca3af;">
           Kontu bat baduzu? <span style="color:#52b788;cursor:pointer;font-weight:600;" onclick="switchTab('login')">Hasi saioa</span>
         </p>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════ SCREEN: QUIZ ══════════════════════ -->
+<!-- ══════════ SCREEN: QUIZ ══════════ -->
 <div id="sc-quiz" class="screen" style="align-items:center;justify-content:center;background:linear-gradient(135deg,#1b4332 0%,#2d6a4f 50%,#52b788 100%);padding:24px;">
   <div class="quiz-wrap">
-    <!-- Progress -->
     <div style="margin-bottom:28px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <span style="font-size:.8rem;font-weight:600;color:#6b7280;" id="quiz-step-lbl">Galdera 1 / 7</span>
@@ -307,23 +222,15 @@
         <div class="step-bar-fill" id="quiz-bar" style="width:14%;"></div>
       </div>
     </div>
-
-    <!-- STEP 1: Edad + Origen -->
+    <!-- STEP 1 -->
     <div class="quiz-step active" id="qs-1">
       <div style="font-size:2rem;margin-bottom:8px;">🙋</div>
       <h3 style="font-size:1.3rem;font-weight:800;color:#1b4332;margin-bottom:6px;">Zenbat urte dituzu eta nongoa zara?</h3>
       <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px;">Hamasei urtetik aurrera erabili daiteke LagunApp</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div>
-          <label class="lbl">🎂 Adina</label>
-          <input id="q-age" type="number" min="16" max="99" class="inp" placeholder="25"/>
-        </div>
-        <div>
-          <label class="lbl">📍 Hiria</label>
-          <select id="q-city" class="inp">
-            <option value="">Hautatu...</option>
-            <!-- populated by data.js -->
-          </select>
+        <div><label class="lbl">🎂 Adina</label><input id="q-age" type="number" min="16" max="99" class="inp" placeholder="25"/></div>
+        <div><label class="lbl">📍 Hiria</label>
+          <select id="q-city" class="inp"><option value="">Hautatu...</option></select>
         </div>
       </div>
       <div style="margin-bottom:20px;">
@@ -337,99 +244,78 @@
       </div>
       <button class="btn-g" onclick="nextStep(1)">Jarraitu →</button>
     </div>
-
-    <!-- STEP 2: Comida favorita -->
+    <!-- STEP 2 -->
     <div class="quiz-step" id="qs-2">
       <div style="font-size:2rem;margin-bottom:8px;">🍽️</div>
       <h3 style="font-size:1.3rem;font-weight:800;color:#1b4332;margin-bottom:6px;">Zer da zure janari gogokoa?</h3>
       <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px;">Aukera bat edo gehiago hauta ditzakezu</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="food-opts">
-        <!-- populated by data.js -->
-      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="food-opts"></div>
       <div style="display:flex;gap:10px;">
         <button class="btn-outline" style="max-width:100px;" onclick="prevStep(2)">← Atzera</button>
         <button class="btn-g" onclick="nextStep(2)">Jarraitu →</button>
       </div>
     </div>
-
-    <!-- STEP 3: Deporte favorito -->
+    <!-- STEP 3 -->
     <div class="quiz-step" id="qs-3">
       <div style="font-size:2rem;margin-bottom:8px;">⚽</div>
       <h3 style="font-size:1.3rem;font-weight:800;color:#1b4332;margin-bottom:6px;">Zer kirol gustatzen zaizu?</h3>
       <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px;">Gustuko dituzun guztiak hautatu</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="sport-opts">
-        <!-- populated by data.js -->
-      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="sport-opts"></div>
       <div style="display:flex;gap:10px;">
         <button class="btn-outline" style="max-width:100px;" onclick="prevStep(3)">← Atzera</button>
         <button class="btn-g" onclick="nextStep(3)">Jarraitu →</button>
       </div>
     </div>
-
-    <!-- STEP 4: Tiempo libre -->
+    <!-- STEP 4 -->
     <div class="quiz-step" id="qs-4">
       <div style="font-size:2rem;margin-bottom:8px;">🎮</div>
       <h3 style="font-size:1.3rem;font-weight:800;color:#1b4332;margin-bottom:6px;">Zer egiten duzu denbora librean?</h3>
       <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px;">Gustuko dituzun guztiak</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="free-opts">
-        <!-- populated by data.js -->
-      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="free-opts"></div>
       <div style="display:flex;gap:10px;">
         <button class="btn-outline" style="max-width:100px;" onclick="prevStep(4)">← Atzera</button>
         <button class="btn-g" onclick="nextStep(4)">Jarraitu →</button>
       </div>
     </div>
-
-    <!-- STEP 5: Musica -->
+    <!-- STEP 5 -->
     <div class="quiz-step" id="qs-5">
       <div style="font-size:2rem;margin-bottom:8px;">🎵</div>
       <h3 style="font-size:1.3rem;font-weight:800;color:#1b4332;margin-bottom:6px;">Zer musika estilo gustatzen zaizu?</h3>
       <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px;">Bat baino gehiago hauta ditzakezu</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="music-opts">
-        <!-- populated by data.js -->
-      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="music-opts"></div>
       <div style="display:flex;gap:10px;">
         <button class="btn-outline" style="max-width:100px;" onclick="prevStep(5)">← Atzera</button>
         <button class="btn-g" onclick="nextStep(5)">Jarraitu →</button>
       </div>
     </div>
-
-    <!-- STEP 6: Personalidad -->
+    <!-- STEP 6 -->
     <div class="quiz-step" id="qs-6">
       <div style="font-size:2rem;margin-bottom:8px;">😄</div>
       <h3 style="font-size:1.3rem;font-weight:800;color:#1b4332;margin-bottom:6px;">Nolakoa zara?</h3>
       <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px;">Gehien adierazten zaituena aukeratu</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="pers-opts">
-        <!-- populated by data.js -->
-      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="pers-opts"></div>
       <div style="display:flex;gap:10px;">
         <button class="btn-outline" style="max-width:100px;" onclick="prevStep(6)">← Atzera</button>
         <button class="btn-g" onclick="nextStep(6)">Jarraitu →</button>
       </div>
     </div>
-
-    <!-- STEP 7: Planes favoritos -->
+    <!-- STEP 7 -->
     <div class="quiz-step" id="qs-7">
       <div style="font-size:2rem;margin-bottom:8px;">📅</div>
       <h3 style="font-size:1.3rem;font-weight:800;color:#1b4332;margin-bottom:6px;">Zer plan gustatzen zaizkizu?</h3>
       <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px;">Nolako planak egiten dituzu lagunartean?</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="plans-opts">
-        <!-- populated by data.js -->
-      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;" id="plans-opts"></div>
       <div style="display:flex;gap:10px;">
         <button class="btn-outline" style="max-width:100px;" onclick="prevStep(7)">← Atzera</button>
         <button class="btn-g" onclick="finishQuiz()">🎉 Amaitu eta lagun berriak aurkitu!</button>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- ══════════════════════ SCREEN: MAIN APP ══════════════════════ -->
+<!-- ══════════ SCREEN: MAIN APP ══════════ -->
 <div id="sc-app" class="screen" style="flex-direction:row;">
   <div class="app-shell" style="width:100%;">
-
-    <!-- SIDEBAR -->
     <nav class="sidebar">
       <div class="sb-logo">L</div>
       <button class="sb-btn active" id="sb-discover" onclick="switchView('discover')" title="Aurkitu">🔍</button>
@@ -439,11 +325,7 @@
       <div style="flex:1;"></div>
       <button class="sb-btn" onclick="doLogout()" title="Irten" style="color:#f87171;">🚪</button>
     </nav>
-
-    <!-- MAIN PANEL -->
     <div class="main-panel">
-
-      <!-- TOPBAR -->
       <div class="topbar">
         <span class="topbar-title" id="topbar-title">🔍 Lagun berriak aurkitu</span>
         <div class="search-bar">
@@ -465,7 +347,6 @@
             <h2 style="font-size:1.2rem;font-weight:700;color:#1b4332;margin:0;">Lagun berriak aurkitu 🌟</h2>
             <p style="color:#6b7280;font-size:.82rem;margin:4px 0 0;">Zure gustuetan oinarrituta</p>
           </div>
-          <!-- Filter pills -->
           <div style="display:flex;gap:8px;flex-wrap:wrap;" id="discover-filters">
             <button class="tag tag-g" style="cursor:pointer;border:none;font-size:.78rem;padding:6px 14px;" onclick="setDiscoverFilter('all',this)">Guztiak</button>
             <button class="tag tag-b" style="cursor:pointer;border:none;font-size:.78rem;padding:6px 14px;" onclick="setDiscoverFilter('sport',this)">⚽ Kirolak</button>
@@ -481,10 +362,7 @@
       <div class="view" id="view-chat" style="padding:0;">
         <div class="chat-layout">
           <div class="chat-list">
-            <div class="chat-list-header">
-              💬 Mezuak
-              <span id="chat-count" style="font-size:.75rem;color:#52b788;font-weight:500;"></span>
-            </div>
+            <div class="chat-list-header">💬 Mezuak <span id="chat-count" style="font-size:.75rem;color:#52b788;font-weight:500;"></span></div>
             <div id="chat-list-items"></div>
           </div>
           <div class="chat-window" id="chat-window-area">
@@ -541,38 +419,21 @@
               </div>
               <div id="mp-bio" style="color:#374151;font-size:.9rem;line-height:1.6;padding:14px;background:#f9fafb;border-radius:12px;margin-bottom:16px;"></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div style="background:#f0fdf4;border-radius:12px;padding:14px;">
-                  <div style="font-weight:700;font-size:.82rem;color:#1b4332;margin-bottom:8px;">⚽ Kirolak</div>
-                  <div id="mp-sports" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
-                </div>
-                <div style="background:#eff6ff;border-radius:12px;padding:14px;">
-                  <div style="font-weight:700;font-size:.82rem;color:#1e40af;margin-bottom:8px;">🎵 Musika</div>
-                  <div id="mp-music" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
-                </div>
-                <div style="background:#fdf4ff;border-radius:12px;padding:14px;">
-                  <div style="font-weight:700;font-size:.82rem;color:#6b21a8;margin-bottom:8px;">🎮 Denbora librea</div>
-                  <div id="mp-free" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
-                </div>
-                <div style="background:#fffbeb;border-radius:12px;padding:14px;">
-                  <div style="font-weight:700;font-size:.82rem;color:#92400e;margin-bottom:8px;">📅 Plan gustukoak</div>
-                  <div id="mp-plans" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
-                </div>
+                <div style="background:#f0fdf4;border-radius:12px;padding:14px;"><div style="font-weight:700;font-size:.82rem;color:#1b4332;margin-bottom:8px;">⚽ Kirolak</div><div id="mp-sports" style="display:flex;flex-wrap:wrap;gap:4px;"></div></div>
+                <div style="background:#eff6ff;border-radius:12px;padding:14px;"><div style="font-weight:700;font-size:.82rem;color:#1e40af;margin-bottom:8px;">🎵 Musika</div><div id="mp-music" style="display:flex;flex-wrap:wrap;gap:4px;"></div></div>
+                <div style="background:#fdf4ff;border-radius:12px;padding:14px;"><div style="font-weight:700;font-size:.82rem;color:#6b21a8;margin-bottom:8px;">🎮 Denbora librea</div><div id="mp-free" style="display:flex;flex-wrap:wrap;gap:4px;"></div></div>
+                <div style="background:#fffbeb;border-radius:12px;padding:14px;"><div style="font-weight:700;font-size:.82rem;color:#92400e;margin-bottom:8px;">📅 Plan gustukoak</div><div id="mp-plans" style="display:flex;flex-wrap:wrap;gap:4px;"></div></div>
+                <div style="background:#f9fafb;border-radius:12px;padding:14px;grid-column:1/-1;"><div style="font-weight:700;font-size:.82rem;color:#374151;margin-bottom:8px;">😄 Nire izaera</div><div id="mp-pers" style="display:flex;flex-wrap:wrap;gap:4px;"></div></div>
               </div>
             </div>
           </div>
-
-          <div style="background:#fff;border-radius:20px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #e8f5e9;">
-            <div style="font-weight:700;color:#1b4332;margin-bottom:12px;">😄 Nire izaera</div>
-            <div id="mp-pers" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-          </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- ══════════════ MODAL: PROFILE DETAIL ══════════════ -->
+<!-- MODAL: PROFILE DETAIL -->
 <div id="modal-profile" class="modal-bg" style="display:none;" onclick="closeProfileModal(event)">
   <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-header-bg"></div>
@@ -587,27 +448,12 @@
       </div>
       <div id="pm-bio" style="color:#374151;font-size:.85rem;line-height:1.6;padding:12px;background:#f9fafb;border-radius:12px;margin-bottom:14px;"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-        <div style="background:#f0fdf4;border-radius:10px;padding:12px;">
-          <div style="font-size:.75rem;font-weight:700;color:#1b4332;margin-bottom:6px;">⚽ Kirolak</div>
-          <div id="pm-sports"></div>
-        </div>
-        <div style="background:#eff6ff;border-radius:10px;padding:12px;">
-          <div style="font-size:.75rem;font-weight:700;color:#1e40af;margin-bottom:6px;">🎵 Musika</div>
-          <div id="pm-music"></div>
-        </div>
-        <div style="background:#fdf4ff;border-radius:10px;padding:12px;">
-          <div style="font-size:.75rem;font-weight:700;color:#6b21a8;margin-bottom:6px;">🎮 Denbora librea</div>
-          <div id="pm-free"></div>
-        </div>
-        <div style="background:#fffbeb;border-radius:10px;padding:12px;">
-          <div style="font-size:.75rem;font-weight:700;color:#92400e;margin-bottom:6px;">📅 Planak</div>
-          <div id="pm-plans"></div>
-        </div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:12px;"><div style="font-size:.75rem;font-weight:700;color:#1b4332;margin-bottom:6px;">⚽ Kirolak</div><div id="pm-sports"></div></div>
+        <div style="background:#eff6ff;border-radius:10px;padding:12px;"><div style="font-size:.75rem;font-weight:700;color:#1e40af;margin-bottom:6px;">🎵 Musika</div><div id="pm-music"></div></div>
+        <div style="background:#fdf4ff;border-radius:10px;padding:12px;"><div style="font-size:.75rem;font-weight:700;color:#6b21a8;margin-bottom:6px;">🎮 Denbora librea</div><div id="pm-free"></div></div>
+        <div style="background:#fffbeb;border-radius:10px;padding:12px;"><div style="font-size:.75rem;font-weight:700;color:#92400e;margin-bottom:6px;">📅 Planak</div><div id="pm-plans"></div></div>
       </div>
-      <div style="background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:16px;">
-        <div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:6px;">😄 Izaera</div>
-        <div id="pm-pers"></div>
-      </div>
+      <div style="background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:16px;"><div style="font-size:.75rem;font-weight:700;color:#374151;margin-bottom:6px;">😄 Izaera</div><div id="pm-pers"></div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <button class="btn-g" onclick="startChatWith(currentModal)" style="font-size:.88rem;padding:11px;">💬 Mezu bat bidali</button>
         <button class="btn-outline" onclick="closeProfileModal()" style="font-size:.88rem;padding:11px;">✕ Itxi</button>
@@ -616,20 +462,17 @@
   </div>
 </div>
 
-<!-- ══════════════ MODAL: CREATE GROUP ══════════════ -->
+<!-- MODAL: CREATE GROUP -->
 <div id="modal-group" class="modal-bg" style="display:none;" onclick="closeGroupModal(event)">
   <div class="modal-box" onclick="event.stopPropagation()" style="max-width:440px;">
     <div style="padding:28px;">
       <h3 style="font-size:1.2rem;font-weight:800;color:#1b4332;margin-bottom:6px;">👥 Talde berria sortu</h3>
       <p style="color:#6b7280;font-size:.82rem;margin-bottom:20px;">Eman izena eta aukeratu kideak</p>
-      <div style="margin-bottom:14px;">
-        <label class="lbl">📝 Taldearen izena</label>
-        <input id="grp-name" class="inp" placeholder="Adib: Mendizaleak 🏔️"/>
-      </div>
+      <div style="margin-bottom:14px;"><label class="lbl">📝 Taldearen izena</label><input id="grp-name" class="inp" placeholder="Adib: Mendizaleak 🏔️"/></div>
       <div style="margin-bottom:14px;">
         <label class="lbl">🎨 Emojia</label>
         <div style="display:flex;flex-wrap:wrap;gap:8px;" id="emoji-picker">
-          <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt sel-emoji" onclick="pickEmoji(this,'⚽')">⚽</span>
+          <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'⚽')">⚽</span>
           <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'🏔️')">🏔️</span>
           <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'🎵')">🎵</span>
           <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'🎮')">🎮</span>
@@ -637,8 +480,6 @@
           <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'✈️')">✈️</span>
           <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'📚')">📚</span>
           <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'🎨')">🎨</span>
-          <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'🏖️')">🏖️</span>
-          <span style="font-size:1.4rem;cursor:pointer;padding:4px;border-radius:8px;" class="emoji-opt" onclick="pickEmoji(this,'🎭')">🎭</span>
         </div>
       </div>
       <div style="margin-bottom:20px;">
@@ -653,21 +494,11 @@
   </div>
 </div>
 
-<!-- ══════════════ MODAL: EDIT PROFILE ══════════════ -->
+<!-- MODAL: EDIT PROFILE -->
 <div id="modal-edit" class="modal-bg" style="display:none;" onclick="closeEditModal(event)">
   <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px;">
     <div style="padding:28px;">
       <h3 style="font-size:1.2rem;font-weight:800;color:#1b4332;margin-bottom:20px;">✏️ Profila editatu</h3>
-      <div style="margin-bottom:14px;">
-        <label class="lbl">📸 Profil argazkia</label>
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div id="edit-avatar-prev" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#52b788,#1b4332);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;font-weight:800;overflow:hidden;flex-shrink:0;"></div>
-          <div style="border:2px dashed #a7f3d0;border-radius:12px;padding:12px 20px;cursor:pointer;text-align:center;background:#f0fdf4;font-size:.82rem;color:#374151;" onclick="document.getElementById('edit-photo').click()">
-            📤 Argazkia aldatu
-          </div>
-          <input type="file" id="edit-photo" accept="image/*" style="display:none;" onchange="handleEditPhoto(event)"/>
-        </div>
-      </div>
       <div style="margin-bottom:14px;">
         <label class="lbl">📝 Niri buruz</label>
         <textarea id="edit-bio" class="inp" style="min-height:80px;resize:vertical;" placeholder="Kontatzu zerbait zure buruaz..."></textarea>
@@ -681,57 +512,94 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast" class="toast"></div>
 
-<script src="data.js"></script>
 <script>
 // ═══════════════════════════════════════════════════
-//  QUIZ OPTIONS INIT (populated from data.js)
+//  DATA
+// ═══════════════════════════════════════════════════
+const QUIZ_DATA = {
+  cities: ['Bilbo','Donostia','Gasteiz','Iruñea','Barakaldo','Getxo','Santurtzi','Basauri','Leioa','Durango','Zarautz','Eibar','Tolosa','Hernani','Errenteria','Arrasate','Bergara','Azpeitia','Ondarroa','Balmaseda'],
+  food: ['🍕 Pizza','🍣 Sushi','🥘 Pintxoak','🍔 Burgerra','🌮 Tacos','🥗 Entsalada','🍜 Pasta','🌱 Beganoa','🥩 Haragia','🍱 Aziatikoa'],
+  sport: ['⚽ Futbola','🏀 Saskibaloia','🎾 Tenisa','🏊 Igeriketa','🚴 Txirrindularitza','🏋️ Gimnasioa','🏔️ Mendizaletasuna','🎿 Eskia','🥊 Boxeoa','🧘 Yoga'],
+  free: ['🎮 Bideojokoak','🎨 Margolana','📚 Irakurketa','🎵 Musika','🎬 Zinema','🌿 Natura','✈️ Bidaiak','🍳 Sukaldaritza','📷 Argazkilaritza','🎭 Antzerkia'],
+  music: ['🎸 Rocka','🎤 Popa','🎷 Jazza','🎻 Klasikoa','🥁 Hip-Hop','🎹 Elektronikoa','🤠 Country','🎺 R&B','🦄 K-Pop','🌍 Folk'],
+  personality: ['😄 Alaia','🤔 Pentsalaria','🎉 Festen zalea','🏡 Etxekoia','🌍 Abenturazalea','🤗 Lagunzalea','🎯 Helburutsua','😎 Lasaia','🔥 Pasioduna','🌈 Sortzailea'],
+  plans: ['☕ Kafea hartu','🍺 Pintxo-pote','🏔️ Mendira joan','🎬 Zinemara joan','🎮 Online jokatu','🚴 Txangoa egin','🎵 Kontzertura joan','🍽️ Bazkaldu','🏊 Igeriketa egin','📚 Ikasi elkarrekin']
+};
+
+// ═══════════════════════════════════════════════════
+//  INIT QUIZ OPTIONS
 // ═══════════════════════════════════════════════════
 function initQuizOptions(){
-  // Cities
   const citySelect = document.getElementById('q-city');
-  QUIZ_DATA.cities.forEach(c=>{
-    const opt=document.createElement('option');
-    opt.textContent=c; citySelect.appendChild(opt);
-  });
-  // Option buttons helper
-  const fillOpts=(containerId, items, key, multi=true)=>{
-    const fn = multi ? 'toggleOpt' : 'pickOpt';
-    document.getElementById(containerId).innerHTML =
-      items.map(t=>`<button class="opt-btn" onclick="${fn}(this,'${key}')">${t}</button>`).join('');
+  QUIZ_DATA.cities.forEach(c=>{ const o=document.createElement('option'); o.textContent=c; citySelect.appendChild(o); });
+  const fillOpts=(id,items,key,multi=true)=>{
+    const fn=multi?'toggleOpt':'pickOpt';
+    document.getElementById(id).innerHTML=items.map(t=>`<button class="opt-btn" onclick="${fn}(this,'${key}')">${t}</button>`).join('');
   };
-  fillOpts('food-opts',  QUIZ_DATA.food,        'food');
-  fillOpts('sport-opts', QUIZ_DATA.sport,       'sport');
-  fillOpts('free-opts',  QUIZ_DATA.free,        'free');
-  fillOpts('music-opts', QUIZ_DATA.music,       'music');
-  fillOpts('pers-opts',  QUIZ_DATA.personality, 'pers');
-  fillOpts('plans-opts', QUIZ_DATA.plans,       'plans');
+  fillOpts('food-opts',QUIZ_DATA.food,'food');
+  fillOpts('sport-opts',QUIZ_DATA.sport,'sport');
+  fillOpts('free-opts',QUIZ_DATA.free,'free');
+  fillOpts('music-opts',QUIZ_DATA.music,'music');
+  fillOpts('pers-opts',QUIZ_DATA.personality,'pers');
+  fillOpts('plans-opts',QUIZ_DATA.plans,'plans');
 }
 document.addEventListener('DOMContentLoaded', initQuizOptions);
 
 // ═══════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════
-let currentUser = null;         // logged-in user profile
-let quizData = {};              // answers during quiz
-let selectedGender = '';
+let currentUser = null;
 let quizStep = 1;
 const totalSteps = 7;
-let chats = {};                 // { userId: [{from,text,time},...] }
-let groups = [];                // [{id,name,emoji,members:[ids],messages:[]}]
-let activeChatId = null;        // 'u-{id}' or 'g-{id}'
-let currentModal = null;        // profile id open in modal
+let chats = {};           // { uid: [{from,text,time}] }
+let chatProfiles = {};    // { uid: profileData }
+let groups = [];
+let activeChatId = null;
+let currentModal = null;
 let discoverFilter = 'all';
 let selectedGroupEmoji = '⚽';
+let selectedGender = '';
+let msgUnsubscribe = null;
+
+// ═══════════════════════════════════════════════════
+//  WAIT FOR FIREBASE
+// ═══════════════════════════════════════════════════
+function waitForFirebase(cb){
+  if(window._firebaseReady) cb();
+  else document.addEventListener('firebaseReady', cb, {once:true});
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  waitForFirebase(()=>{
+    const { onAuthStateChanged } = window._firebase;
+    onAuthStateChanged(window._auth, async user=>{
+      if(user){
+        const { doc, getDoc } = window._firebase;
+        const snap = await getDoc(doc(window._db,'profiles',user.uid));
+        if(snap.exists()){
+          currentUser = {id:user.uid, ...snap.data()};
+          enterApp();
+        } else {
+          currentUser = {id:user.uid, name:'', username:'', email:user.email};
+          showScreen('sc-quiz');
+          goToStep(1);
+        }
+      } else {
+        showScreen('sc-login');
+      }
+    });
+  });
+});
 
 // ═══════════════════════════════════════════════════
 //  SCREENS
 // ═══════════════════════════════════════════════════
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
 }
 
 // ═══════════════════════════════════════════════════
@@ -742,11 +610,11 @@ function switchTab(t){
   document.getElementById('form-reg').style.display = t==='reg'?'block':'none';
   const tl=document.getElementById('tab-login'), tr=document.getElementById('tab-reg');
   if(t==='login'){
-    tl.style.background='#fff';tl.style.color='#1b4332';tl.style.boxShadow='0 1px 6px rgba(0,0,0,.1)';
-    tr.style.background='transparent';tr.style.color='#6b7280';tr.style.boxShadow='none';
+    tl.style.cssText='flex:1;padding:9px;border-radius:9px;border:none;font-family:Poppins,sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;background:#fff;color:#1b4332;box-shadow:0 1px 6px rgba(0,0,0,.1);';
+    tr.style.cssText='flex:1;padding:9px;border-radius:9px;border:none;font-family:Poppins,sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;background:transparent;color:#6b7280;';
   } else {
-    tr.style.background='#fff';tr.style.color='#1b4332';tr.style.boxShadow='0 1px 6px rgba(0,0,0,.1)';
-    tl.style.background='transparent';tl.style.color='#6b7280';tl.style.boxShadow='none';
+    tr.style.cssText='flex:1;padding:9px;border-radius:9px;border:none;font-family:Poppins,sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;background:#fff;color:#1b4332;box-shadow:0 1px 6px rgba(0,0,0,.1);';
+    tl.style.cssText='flex:1;padding:9px;border-radius:9px;border:none;font-family:Poppins,sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;background:transparent;color:#6b7280;';
   }
 }
 
@@ -755,12 +623,13 @@ async function doLogin(){
   const pass=document.getElementById('li-pass').value.trim();
   if(!email||!pass){showToast('❗ Bete eremu guztiak');return;}
   showToast('⏳ Sartzen...');
-  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
-  if(error){showToast('❌ '+error.message);return;}
-  const {data:profile}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
-  if(!profile){showToast('❌ Ez da profila aurkitu');return;}
-  currentUser={...profile};
-  enterApp();
+  try{
+    const { signInWithEmailAndPassword } = window._firebase;
+    await signInWithEmailAndPassword(window._auth, email, pass);
+    // onAuthStateChanged handles the rest
+  } catch(e){
+    showToast('❌ Email edo pasahitza okerra');
+  }
 }
 
 async function doRegister(){
@@ -769,19 +638,24 @@ async function doRegister(){
   const email=document.getElementById('reg-email').value.trim();
   const pass=document.getElementById('reg-pass').value.trim();
   if(!name||!username||!email||!pass){showToast('❗ Bete eremu guztiak');return;}
-  if(pass.length<6){showToast('❗ Pasahitzak 6 karaktere behar ditu gutxienez');return;}
+  if(pass.length<6){showToast('❗ Pasahitzak 6 karaktere behar ditu');return;}
   showToast('⏳ Erregistratzen...');
-  const {data,error}=await sb.auth.signUp({email,password:pass});
-  if(error){showToast('❌ '+error.message);return;}
-  await sb.from('profiles').insert({id:data.user.id,name,username,email,age:0,city:'',gender:'',bio:'',food:[],sport:[],free:[],music:[],pers:[],plans:[],photo_url:null});
-  currentUser={id:data.user.id,name,username,email,age:0,city:'',gender:'',bio:'',food:[],sport:[],free:[],music:[],pers:[],plans:[],photoData:null};
-  showScreen('sc-quiz');
-  goToStep(1);
+  try{
+    const { createUserWithEmailAndPassword } = window._firebase;
+    const cred = await createUserWithEmailAndPassword(window._auth, email, pass);
+    currentUser = {id:cred.user.uid, name, username, email, age:0, city:'', gender:'', bio:'', food:[], sport:[], free:[], music:[], pers:[], plans:[]};
+    showScreen('sc-quiz');
+    goToStep(1);
+  } catch(e){
+    showToast('❌ '+e.message);
+  }
 }
 
 async function doLogout(){
-  await sb.auth.signOut();
-  currentUser=null; chats={}; groups=[];
+  const { signOut } = window._firebase;
+  await signOut(window._auth);
+  currentUser=null; chats={}; chatProfiles={}; groups=[];
+  if(msgUnsubscribe) msgUnsubscribe();
   showScreen('sc-login');
 }
 
@@ -798,17 +672,15 @@ function goToStep(n){
   document.getElementById('quiz-step-lbl').textContent='Galdera '+n+' / '+totalSteps;
 }
 
-function pickOpt(el, group){
-  el.closest('.quiz-step').querySelectorAll('[onclick*="'+group+'"]').forEach(b=>b.classList.remove('sel'));
+function pickOpt(el,group){
+  el.closest('.quiz-step').querySelectorAll('[onclick*="\''+group+'\'"]').forEach(b=>b.classList.remove('sel'));
   el.classList.add('sel');
   if(group==='gender') selectedGender=el.textContent.replace(/^[^ ]+ /,'');
 }
 
-function toggleOpt(el, group){
-  el.classList.toggle('sel');
-}
+function toggleOpt(el){ el.classList.toggle('sel'); }
 
-function getSelected(stepEl, group){
+function getSelected(stepEl){
   return [...stepEl.querySelectorAll('.opt-btn.sel')].map(b=>b.textContent.trim());
 }
 
@@ -822,10 +694,10 @@ function nextStep(n){
     currentUser.city=city;
     currentUser.gender=selectedGender||'Ez esana';
   } else {
-    const key=['','','food','sport','free','music','pers','plans'][n];
-    const vals=getSelected(step,key);
+    const keys=['','','food','sport','free','music','pers','plans'];
+    const vals=getSelected(step);
     if(vals.length===0){showToast('❗ Hautatu gutxienez bat');return;}
-    currentUser[key]=vals;
+    currentUser[keys[n]]=vals;
   }
   goToStep(n+1);
 }
@@ -834,19 +706,23 @@ function prevStep(n){ goToStep(n-1); }
 
 async function finishQuiz(){
   const step=document.getElementById('qs-7');
-  const plans=getSelected(step,'plans');
+  const plans=getSelected(step);
   if(plans.length===0){showToast('❗ Hautatu gutxienez plan bat');return;}
   currentUser.plans=plans;
   showToast('⏳ Gordetzen...');
-  await sb.from('profiles').upsert({
-    id:currentUser.id,
-    name:currentUser.name,username:currentUser.username,
-    age:currentUser.age,city:currentUser.city,gender:currentUser.gender,
-    bio:currentUser.bio||'',
-    food:currentUser.food,sport:currentUser.sport,free:currentUser.free,
-    music:currentUser.music,pers:currentUser.pers,plans:currentUser.plans
-  });
-  enterApp();
+  try{
+    const { doc, setDoc } = window._firebase;
+    await setDoc(doc(window._db,'profiles',currentUser.id), {
+      name:currentUser.name, username:currentUser.username||'', email:currentUser.email||'',
+      age:currentUser.age, city:currentUser.city, gender:currentUser.gender,
+      bio:currentUser.bio||'', food:currentUser.food, sport:currentUser.sport,
+      free:currentUser.free, music:currentUser.music, pers:currentUser.pers, plans:currentUser.plans,
+      photo_url:currentUser.photo_url||null
+    });
+    enterApp();
+  } catch(e){
+    showToast('❌ Errorea: '+e.message);
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -866,11 +742,7 @@ function enterApp(){
 
 function renderTopbar(){
   const a=document.getElementById('topbar-avatar');
-  if(currentUser.photoData){
-    a.innerHTML=`<img src="${currentUser.photoData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
-  } else {
-    a.textContent=currentUser.name[0].toUpperCase();
-  }
+  a.textContent=currentUser.name?currentUser.name[0].toUpperCase():'?';
   document.getElementById('topbar-name').textContent=currentUser.name;
 }
 
@@ -891,23 +763,22 @@ function switchView(v){
 //  DISCOVER
 // ═══════════════════════════════════════════════════
 let searchTerm='';
+let allDiscoverUsers=[];
 
 function setDiscoverFilter(f,el){
   discoverFilter=f;
-  document.querySelectorAll('#discover-filters button').forEach(b=>{
-    b.style.outline='none';b.style.fontWeight='600';
-  });
+  document.querySelectorAll('#discover-filters button').forEach(b=>{b.style.outline='none';});
   el.style.outline='2px solid #1b4332';
-  renderDiscover();
+  renderDiscoverGrid();
 }
 
 function filterDiscover(){
   searchTerm=document.getElementById('search-input').value.toLowerCase();
-  renderDiscover();
+  renderDiscoverGrid();
 }
 
 function calcMatch(u){
-  if(!currentUser||!currentUser.sport) return Math.floor(Math.random()*30)+50;
+  if(!currentUser||!currentUser.sport) return 50;
   let score=0;
   const common=(a,b)=>(a||[]).filter(x=>(b||[]).includes(x)).length;
   score+=common(currentUser.sport,u.sport)*12;
@@ -916,7 +787,7 @@ function calcMatch(u){
   score+=common(currentUser.plans,u.plans)*8;
   score+=common(currentUser.food,u.food)*5;
   score+=common(currentUser.pers,u.pers)*5;
-  const ageDiff=Math.abs((currentUser.age||20)-u.age);
+  const ageDiff=Math.abs((currentUser.age||20)-(u.age||20));
   if(ageDiff<=3) score+=12; else if(ageDiff<=7) score+=6;
   if(currentUser.city===u.city) score+=10;
   return Math.min(Math.round(score*1.1)+30,99);
@@ -925,9 +796,21 @@ function calcMatch(u){
 async function renderDiscover(){
   const grid=document.getElementById('discover-grid');
   grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:#9ca3af;">⏳ Kargatzen...</div>';
-  const {data:allUsers}=await sb.from('profiles').select('*').neq('id',currentUser.id);
-  let users=[...(allUsers||[])];
-  if(searchTerm) users=users.filter(u=>u.name.toLowerCase().includes(searchTerm)||u.city.toLowerCase().includes(searchTerm));
+  try{
+    const { collection, getDocs } = window._firebase;
+    const snap = await getDocs(collection(window._db,'profiles'));
+    allDiscoverUsers = [];
+    snap.forEach(d=>{ if(d.id!==currentUser.id) allDiscoverUsers.push({id:d.id,...d.data()}); });
+    renderDiscoverGrid();
+  } catch(e){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:#9ca3af;">❌ Errorea kargatzean</div>';
+  }
+}
+
+function renderDiscoverGrid(){
+  const grid=document.getElementById('discover-grid');
+  let users=[...allDiscoverUsers];
+  if(searchTerm) users=users.filter(u=>(u.name||'').toLowerCase().includes(searchTerm)||(u.city||'').toLowerCase().includes(searchTerm));
   if(discoverFilter!=='all') users=users.filter(u=>(u[discoverFilter]||[]).length>0);
   users=users.map(u=>({...u,match:calcMatch(u)})).sort((a,b)=>b.match-a.match);
 
@@ -935,21 +818,19 @@ async function renderDiscover(){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:#9ca3af;"><div style="font-size:3rem;margin-bottom:12px;">🔍</div><div style="font-weight:600;">Oraindik ez dago profilerik</div><div style="font-size:.82rem;margin-top:6px;">Laster ikusiko dituzu lagun berriak!</div></div>';
     return;
   }
-
   grid.innerHTML=users.map(u=>{
     const tags=[...(u.sport||[]).slice(0,1),...(u.music||[]).slice(0,1),...(u.free||[]).slice(0,1)];
-    return `
-    <div class="profile-card" onclick="openProfileModal('${u.id}')">
+    return `<div class="profile-card" onclick="openProfileModal('${u.id}')">
       <div class="card-header"></div>
       <div style="padding:0 16px 16px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div class="card-avatar bg-gradient-to-br from-green-300 to-green-700">${u.photo_url?`<img src="${u.photo_url}"/>`:(u.name?u.name[0].toUpperCase():'?')}</div>
+          <div class="card-avatar" style="background:linear-gradient(135deg,#52b788,#1b4332);">${u.name?u.name[0].toUpperCase():'?'}</div>
           <div class="match-pill" style="margin-top:8px;">${u.match}% match</div>
         </div>
         <div style="margin-top:8px;">
-          <div style="font-weight:700;font-size:.95rem;color:#111;">${u.name}</div>
-          <div style="font-size:.75rem;color:#6b7280;margin-bottom:8px;">${u.city} · ${u.age} urte · ${u.gender}</div>
-          <div style="font-size:.78rem;color:#374151;line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${u.bio}</div>
+          <div style="font-weight:700;font-size:.95rem;color:#111;">${u.name||''}</div>
+          <div style="font-size:.75rem;color:#6b7280;margin-bottom:8px;">${u.city||''} · ${u.age||'?'} urte · ${u.gender||''}</div>
+          <div style="font-size:.78rem;color:#374151;line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${u.bio||''}</div>
           <div>${tags.map(t=>`<span class="tag tag-g">${t}</span>`).join('')}</div>
         </div>
       </div>
@@ -961,26 +842,25 @@ async function renderDiscover(){
 //  PROFILE MODAL
 // ═══════════════════════════════════════════════════
 async function openProfileModal(id){
-  const {data:u}=await sb.from('profiles').select('*').eq('id',id).single();
-  if(!u) return;
-  currentModal=id;
-  const av=document.getElementById('pm-avatar');
-  av.className='modal-avatar bg-gradient-to-br from-green-300 to-green-700';
-  av.innerHTML=u.photo_url?`<img src="${u.photo_url}"/>`:(u.name?u.name[0].toUpperCase():'?');
-  document.getElementById('pm-name').textContent=u.name;
-  document.getElementById('pm-sub').textContent=`${u.city} · ${u.age} urte · ${u.gender}`;
-  document.getElementById('pm-bio').textContent=u.bio;
-  document.getElementById('pm-match').textContent=calcMatch(u)+'% match';
-  const renderTags=(id,arr,cls)=>{
-    document.getElementById(id).innerHTML=(arr||[]).map(t=>`<span class="tag ${cls}">${t}</span>`).join('')||'<span style="color:#9ca3af;font-size:.75rem;">-</span>';
-  };
-  renderTags('pm-sports',u.sport,'tag-g');
-  renderTags('pm-music',u.music,'tag-b');
-  renderTags('pm-free',u.free,'tag-p');
-  renderTags('pm-plans',u.plans,'tag-y');
-  renderTags('pm-pers',u.pers,'tag-pk');
-  document.getElementById('modal-profile').style.display='flex';
+  try{
+    const { doc, getDoc } = window._firebase;
+    const snap = await getDoc(doc(window._db,'profiles',id));
+    if(!snap.exists()) return;
+    const u = {id, ...snap.data()};
+    currentModal=id;
+    const av=document.getElementById('pm-avatar');
+    av.textContent=u.name?u.name[0].toUpperCase():'?';
+    document.getElementById('pm-name').textContent=u.name||'';
+    document.getElementById('pm-sub').textContent=`${u.city||''} · ${u.age||'?'} urte · ${u.gender||''}`;
+    document.getElementById('pm-bio').textContent=u.bio||'Bio gabekoa';
+    document.getElementById('pm-match').textContent=calcMatch(u)+'% match';
+    const rt=(id,arr,cls)=>{ document.getElementById(id).innerHTML=(arr||[]).map(t=>`<span class="tag ${cls}">${t}</span>`).join('')||'<span style="color:#9ca3af;font-size:.75rem;">-</span>'; };
+    rt('pm-sports',u.sport,'tag-g'); rt('pm-music',u.music,'tag-b');
+    rt('pm-free',u.free,'tag-p'); rt('pm-plans',u.plans,'tag-y'); rt('pm-pers',u.pers,'tag-pk');
+    document.getElementById('modal-profile').style.display='flex';
+  } catch(e){ showToast('❌ Errorea profila kargatzen'); }
 }
+
 function closeProfileModal(e){
   if(!e||e.target===document.getElementById('modal-profile')){
     document.getElementById('modal-profile').style.display='none';
@@ -989,39 +869,75 @@ function closeProfileModal(e){
 }
 
 // ═══════════════════════════════════════════════════
-//  CHAT
+//  CHAT — Firebase Realtime
 // ═══════════════════════════════════════════════════
+function getChatId(uid1, uid2){
+  return [uid1,uid2].sort().join('_');
+}
+
+function subscribeToMessages(){
+  if(msgUnsubscribe) msgUnsubscribe();
+  const { collection, query, where, onSnapshot, orderBy } = window._firebase;
+  // Listen to all messages where current user is involved
+  const q = query(
+    collection(window._db,'messages'),
+    where('participants','array-contains', currentUser.id)
+  );
+  msgUnsubscribe = onSnapshot(q, async snap=>{
+    for(const change of snap.docChanges()){
+      if(change.type==='added'){
+        const m = change.doc.data();
+        const otherId = m.sender_id===currentUser.id ? m.receiver_id : m.sender_id;
+        if(!chats[otherId]) chats[otherId]=[];
+        const now=m.created_at?.toDate?.()||new Date();
+        const time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+        // Avoid duplicates
+        const exists=chats[otherId].some(x=>x._id===change.doc.id);
+        if(!exists){
+          chats[otherId].push({_id:change.doc.id, from:m.sender_id, text:m.text, time});
+          // Cache profile
+          if(!chatProfiles[otherId]){
+            const { doc, getDoc } = window._firebase;
+            const ps = await getDoc(doc(window._db,'profiles',otherId));
+            if(ps.exists()) chatProfiles[otherId]={id:otherId,...ps.data()};
+          }
+          renderChatList();
+          if(activeChatId==='u-'+otherId) renderChatWindow();
+        }
+      }
+    }
+  });
+}
+
 function renderChatList(){
   const list=document.getElementById('chat-list-items');
-  const allUsers = typeof demoUsers !== 'undefined' ? demoUsers : [];
   let html='';
-  const chatIds=Object.keys(chats);
-  chatIds.forEach(uid=>{
-    const u=allUsers.find(x=>x.id===parseInt(uid));
-    if(!u) return;
+  const uids=Object.keys(chats).filter(uid=>chats[uid].length>0);
+  uids.forEach(uid=>{
+    const p=chatProfiles[uid];
     const msgs=chats[uid];
     const last=msgs[msgs.length-1];
+    const name=p?p.name:uid.slice(0,8)+'...';
     html+=`<div class="chat-item ${activeChatId==='u-'+uid?'active':''}" onclick="openChat('u-${uid}')">
-      <div class="chat-avatar bg-gradient-to-br ${u.color}">${u.photoData?`<img src="${u.photoData}"/>`:(u.avatar)}</div>
+      <div class="chat-avatar">${name[0]?.toUpperCase()||'?'}</div>
       <div style="min-width:0;">
-        <div class="chat-name">${u.name}</div>
+        <div class="chat-name">${name}</div>
         <div class="chat-preview">${last?last.text:''}</div>
       </div>
     </div>`;
   });
   groups.forEach(g=>{
     const last=g.messages[g.messages.length-1];
-    const fromUser=last?(last.from==='me'?currentUser.name:(allUsers.find(x=>x.id===last.from)||{name:''}).name):'';
     html+=`<div class="chat-item ${activeChatId==='g-'+g.id?'active':''}" onclick="openChat('g-${g.id}')">
-      <div class="chat-avatar" style="background:linear-gradient(135deg,#52b788,#1b4332);font-size:1.3rem;">${g.emoji}</div>
+      <div class="chat-avatar" style="font-size:1.2rem;">${g.emoji}</div>
       <div style="min-width:0;">
         <div class="chat-name">${g.name}</div>
-        <div class="chat-preview">${fromUser?fromUser+': ':''} ${last?last.text:''}</div>
+        <div class="chat-preview">${last?last.text:'Oraindik ez dago mezurik'}</div>
       </div>
     </div>`;
   });
   list.innerHTML=html||'<div style="padding:20px;color:#9ca3af;font-size:.82rem;text-align:center;">Oraindik ez dago elkarrizketarik</div>';
-  document.getElementById('chat-count').textContent=` (${chatIds.length+groups.length})`;
+  document.getElementById('chat-count').textContent=` (${uids.length+groups.length})`;
 }
 
 function openChat(cid){
@@ -1034,7 +950,6 @@ function openChat(cid){
 
 function renderChatWindow(){
   if(!activeChatId) return;
-  const allUsers = typeof demoUsers !== 'undefined' ? demoUsers : [];
   const isGroup=activeChatId.startsWith('g-');
   const cav=document.getElementById('ca-avatar');
   const cname=document.getElementById('ca-name');
@@ -1044,26 +959,19 @@ function renderChatWindow(){
     const gid=activeChatId.replace('g-','');
     const g=groups.find(x=>x.id===gid);
     if(!g) return;
-    cav.style.background='linear-gradient(135deg,#52b788,#1b4332)';
     cav.innerHTML=`<span style="font-size:1.1rem;">${g.emoji}</span>`;
-    cname.textContent=g.name+' ('+g.members.length+' kide)';
+    cname.textContent=g.name;
     msgs.innerHTML=g.messages.map(m=>{
-      const isMe=m.from==='me';
-      const sender=isMe?currentUser.name:(allUsers.find(x=>x.id===m.from)||{name:'?'}).name;
-      return `<div>
-        ${!isMe?`<div style="font-size:.68rem;color:#9ca3af;margin-bottom:2px;padding-left:8px;">${sender}</div>`:''}
-        <div class="msg ${isMe?'msg-out':'msg-in'}">${m.text}<div class="msg-time">${m.time}</div></div>
-      </div>`;
+      const isMe=m.from===currentUser.id||m.from==='me';
+      return `<div class="msg ${isMe?'msg-out':'msg-in'}">${m.text}<div class="msg-time">${m.time}</div></div>`;
     }).join('');
   } else {
-    const uid=parseInt(activeChatId.replace('u-',''));
-    const u=allUsers.find(x=>x.id===uid);
-    if(!u) return;
-    cav.className=`chat-avatar bg-gradient-to-br ${u.color}`;
-    cav.innerHTML=u.photoData?`<img src="${u.photoData}"/>`:(u.avatar);
-    cname.textContent=u.name;
+    const uid=activeChatId.replace('u-','');
+    const p=chatProfiles[uid];
+    cav.textContent=p?p.name[0].toUpperCase():'?';
+    cname.textContent=p?p.name:'...';
     msgs.innerHTML=(chats[uid]||[]).map(m=>{
-      const isMe=m.from==='me';
+      const isMe=m.from===currentUser.id||m.from==='me';
       return `<div class="msg ${isMe?'msg-out':'msg-in'}">${m.text}<div class="msg-time">${m.time}</div></div>`;
     }).join('');
   }
@@ -1078,57 +986,47 @@ async function sendMessage(){
   const now=new Date();
   const time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
   const isGroup=activeChatId.startsWith('g-');
+
   if(isGroup){
     const gid=activeChatId.replace('g-','');
-    await sb.from('group_messages').insert({group_id:gid,sender_id:currentUser.id,text});
     const g=groups.find(x=>x.id===gid);
-    if(g) g.messages.push({from:'me',text,time});
+    if(g){ g.messages.push({from:currentUser.id,text,time}); renderChatWindow(); renderChatList(); }
+    try{
+      const { collection, addDoc, serverTimestamp } = window._firebase;
+      await addDoc(collection(window._db,'group_messages'),{group_id:gid,sender_id:currentUser.id,text,created_at:serverTimestamp()});
+    } catch(e){}
   } else {
     const uid=activeChatId.replace('u-','');
-    await sb.from('messages').insert({sender_id:currentUser.id,receiver_id:uid,text});
     if(!chats[uid]) chats[uid]=[];
-    chats[uid].push({from:'me',text,time});
+    const msgObj={_id:'local-'+Date.now(), from:currentUser.id, text, time};
+    chats[uid].push(msgObj);
+    renderChatWindow(); renderChatList();
+    try{
+      const { collection, addDoc, serverTimestamp } = window._firebase;
+      await addDoc(collection(window._db,'messages'),{
+        sender_id:currentUser.id, receiver_id:uid, text,
+        participants:[currentUser.id, uid],
+        created_at:serverTimestamp()
+      });
+    } catch(e){ showToast('❌ Errorea mezua bidaltzean'); }
   }
-  renderChatWindow();
-  renderChatList();
-}
-
-let realtimeChannel=null;
-function subscribeToMessages(){
-  if(realtimeChannel) sb.removeChannel(realtimeChannel);
-  realtimeChannel=sb.channel('inbox')
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`receiver_id=eq.${currentUser.id}`},payload=>{
-      const m=payload.new;
-      const uid=m.sender_id;
-      if(!chats[uid]) chats[uid]=[];
-      const now=new Date(m.created_at);
-      const time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
-      chats[uid].push({from:uid,text:m.text,time});
-      renderChatList();
-      if(activeChatId==='u-'+uid) renderChatWindow();
-    })
-    .subscribe();
 }
 
 function startChatWith(id){
-  const uid=id;
-  if(!chats[uid]) chats[uid]=[];
+  if(!chats[id]) chats[id]=[];
   closeProfileModal();
   switchView('chat');
-  document.getElementById('sb-chat').classList.add('active');
-  document.getElementById('sb-discover').classList.remove('active');
-  setTimeout(()=>{openChat('u-'+uid);},100);
-  document.getElementById('topbar-title').textContent='💬 Mezuak';
+  setTimeout(()=>{ openChat('u-'+id); renderChatList(); },100);
 }
 
 function openProfileFromChat(){
   if(!activeChatId||activeChatId.startsWith('g-')) return;
-  const uid=parseInt(activeChatId.replace('u-',''));
+  const uid=activeChatId.replace('u-','');
   openProfileModal(uid);
 }
 
 // ═══════════════════════════════════════════════════
-//  GROUPS
+//  GROUPS (local, no backend)
 // ═══════════════════════════════════════════════════
 function renderGroups(){
   const list=document.getElementById('groups-list');
@@ -1137,19 +1035,14 @@ function renderGroups(){
     return;
   }
   list.innerHTML=groups.map(g=>{
-    const memberCount = g.members.length + 1; // +1 por el usuario actual
     const last=g.messages[g.messages.length-1];
-    const fromName=last?(last.from==='me'?currentUser.name:'...'):'';
     return `<div class="group-card" onclick="openGroupChat('${g.id}')">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <div class="group-icon" style="background:linear-gradient(135deg,#e8f5e9,#d8f3dc);">${g.emoji}</div>
-        <div>
-          <div style="font-weight:700;font-size:.95rem;color:#111;">${g.name}</div>
-          <div style="font-size:.75rem;color:#6b7280;">${memberCount} kide</div>
-        </div>
+        <div><div style="font-weight:700;font-size:.95rem;color:#111;">${g.name}</div><div style="font-size:.75rem;color:#6b7280;">${g.members.length+1} kide</div></div>
       </div>
       <div style="font-size:.8rem;color:#6b7280;background:#f9fafb;border-radius:10px;padding:10px;line-height:1.5;">
-        ${last?`<strong>${fromName}:</strong> ${last.text}`:'<span style="color:#9ca3af;">Oraindik ez dago mezurik</span>'}
+        ${last?`<strong>Azken mezua:</strong> ${last.text}`:'<span style="color:#9ca3af;">Oraindik ez dago mezurik</span>'}
       </div>
     </div>`;
   }).join('');
@@ -1162,41 +1055,37 @@ function openGroupChat(gid){
 }
 
 function openCreateGroup(){
-  // Sin bots: la lista de miembros vendrá de usuarios reales del backend
-  document.getElementById('group-member-list').innerHTML=
-    '<div style="padding:16px;color:#9ca3af;font-size:.85rem;text-align:center;">Pronto podrás añadir amigos reales aquí 🚀</div>';
+  const memberHtml = allDiscoverUsers.map(u=>`
+    <div>
+      <input type="checkbox" class="member-check" id="mc-${u.id}" value="${u.id}"/>
+      <label class="member-label" for="mc-${u.id}">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#52b788,#1b4332);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.9rem;flex-shrink:0;">${u.name?u.name[0].toUpperCase():'?'}</div>
+        <div><div style="font-weight:600;font-size:.85rem;">${u.name}</div><div style="font-size:.72rem;color:#9ca3af;">${u.city||''}</div></div>
+      </label>
+    </div>`).join('');
+  document.getElementById('group-member-list').innerHTML = memberHtml ||
+    '<div style="padding:16px;color:#9ca3af;font-size:.85rem;text-align:center;">Ez dago beste erabiltzailerik oraindik</div>';
   document.getElementById('modal-group').style.display='flex';
 }
+
 function closeGroupModal(e){
-  if(!e||e.target===document.getElementById('modal-group')){
-    document.getElementById('modal-group').style.display='none';
-  }
+  if(!e||e.target===document.getElementById('modal-group')) document.getElementById('modal-group').style.display='none';
 }
 
 function pickEmoji(el,em){
   selectedGroupEmoji=em;
   document.querySelectorAll('.emoji-opt').forEach(e=>{e.style.background='';e.style.outline='';});
-  el.style.background='#d8f3dc';
-  el.style.outline='2px solid #52b788';
-  el.style.borderRadius='8px';
+  el.style.background='#d8f3dc'; el.style.outline='2px solid #52b788'; el.style.borderRadius='8px';
 }
 
 function createGroup(){
   const name=document.getElementById('grp-name').value.trim();
   if(!name){showToast('❗ Eman izena taldeari');return;}
-  const checked=[...document.querySelectorAll('.member-check:checked')].map(c=>parseInt(c.value));
+  const checked=[...document.querySelectorAll('.member-check:checked')].map(c=>c.value);
   if(checked.length===0){showToast('❗ Hautatu gutxienez kide bat');return;}
-  const newGroup={
-    id:'g'+(Date.now()),
-    name,
-    emoji:selectedGroupEmoji,
-    members:checked,
-    messages:[]
-  };
-  groups.push(newGroup);
+  groups.push({id:'g'+Date.now(), name, emoji:selectedGroupEmoji, members:checked, messages:[]});
   closeGroupModal();
-  renderGroups();
-  renderChatList();
+  renderGroups(); renderChatList();
   showToast('✅ "'+name+'" taldea sortuta!');
   document.getElementById('grp-name').value='';
 }
@@ -1207,68 +1096,38 @@ function createGroup(){
 function renderMyProfile(){
   if(!currentUser) return;
   const mp=id=>document.getElementById(id);
-  // Avatar
   const av=mp('mp-avatar');
-  if(currentUser.photoData){
-    av.innerHTML=`<img src="${currentUser.photoData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
-    av.style.background='none';
-  } else {
-    av.textContent=currentUser.name[0].toUpperCase();
-    av.style.background='linear-gradient(135deg,#52b788,#1b4332)';
-  }
-  mp('mp-name').textContent=currentUser.name;
+  av.textContent=currentUser.name?currentUser.name[0].toUpperCase():'?';
+  mp('mp-name').textContent=currentUser.name||'';
   mp('mp-sub').textContent=[currentUser.age?(currentUser.age+' urte'):'',currentUser.city,currentUser.gender].filter(Boolean).join(' · ')||'Bete zure profila';
   mp('mp-bio').textContent=currentUser.bio||'Ez da biografia idatzi oraindik. Editatu zure profila!';
-
-  const renderTags=(id,arr,cls)=>{ mp(id).innerHTML=(arr||[]).map(t=>`<span class="tag ${cls}">${t}</span>`).join('')||'<span style="color:#9ca3af;font-size:.75rem;">-</span>'; };
-  renderTags('mp-sports',currentUser.sport,'tag-g');
-  renderTags('mp-music',currentUser.music,'tag-b');
-  renderTags('mp-free',currentUser.free,'tag-p');
-  renderTags('mp-plans',currentUser.plans,'tag-y');
-  renderTags('mp-pers',currentUser.pers,'tag-pk');
+  const rt=(id,arr,cls)=>{ mp(id).innerHTML=(arr||[]).map(t=>`<span class="tag ${cls}">${t}</span>`).join('')||'<span style="color:#9ca3af;font-size:.75rem;">-</span>'; };
+  rt('mp-sports',currentUser.sport,'tag-g'); rt('mp-music',currentUser.music,'tag-b');
+  rt('mp-free',currentUser.free,'tag-p'); rt('mp-plans',currentUser.plans,'tag-y'); rt('mp-pers',currentUser.pers,'tag-pk');
 }
 
 function openEditProfile(){
-  const ep=id=>document.getElementById(id);
-  ep('edit-age').value=currentUser.age||'';
-  ep('edit-bio').value=currentUser.bio||'';
-  const av=ep('edit-avatar-prev');
-  if(currentUser.photoData){
-    av.innerHTML=`<img src="${currentUser.photoData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
-    av.style.background='none';
-  } else {
-    av.textContent=currentUser.name[0].toUpperCase();
-    av.style.background='linear-gradient(135deg,#52b788,#1b4332)';
-  }
+  document.getElementById('edit-age').value=currentUser.age||'';
+  document.getElementById('edit-bio').value=currentUser.bio||'';
   document.getElementById('modal-edit').style.display='flex';
 }
+
 function closeEditModal(e){
-  if(!e||e.target===document.getElementById('modal-edit')){
-    document.getElementById('modal-edit').style.display='none';
-  }
+  if(!e||e.target===document.getElementById('modal-edit')) document.getElementById('modal-edit').style.display='none';
 }
-function handleEditPhoto(event){
-  const file=event.target.files[0];
-  if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    currentUser.photoData=e.target.result;
-    const av=document.getElementById('edit-avatar-prev');
-    av.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
-    av.style.background='none';
-  };
-  reader.readAsDataURL(file);
-}
+
 async function saveEditProfile(){
   const age=parseInt(document.getElementById('edit-age').value);
-  if(age&&(age<16||age>99)){showToast('❗ Adina 16-99 artean izan behar da');return;}
+  if(age&&(age<16||age>99)){showToast('❗ Adina 16-99 artean');return;}
   if(age) currentUser.age=age;
   currentUser.bio=document.getElementById('edit-bio').value.trim();
-  await sb.from('profiles').update({age:currentUser.age,bio:currentUser.bio,photo_url:currentUser.photo_url||null}).eq('id',currentUser.id);
-  document.getElementById('modal-edit').style.display='none';
-  renderMyProfile();
-  renderTopbar();
-  showToast('✅ Profila eguneratuta!');
+  try{
+    const { doc, updateDoc } = window._firebase;
+    await updateDoc(doc(window._db,'profiles',currentUser.id),{age:currentUser.age, bio:currentUser.bio});
+    document.getElementById('modal-edit').style.display='none';
+    renderMyProfile(); renderTopbar();
+    showToast('✅ Profila eguneratuta!');
+  } catch(e){ showToast('❌ Errorea gordetzean'); }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1276,14 +1135,10 @@ async function saveEditProfile(){
 // ═══════════════════════════════════════════════════
 function showToast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.classList.add('show');
+  t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// ═══════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     document.getElementById('modal-profile').style.display='none';
