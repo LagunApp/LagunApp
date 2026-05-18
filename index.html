@@ -10,19 +10,6 @@
     *{font-family:'Poppins',sans-serif;box-sizing:border-box;}
     body{background:#f0f7f4;margin:0;}
 
-  /* Animación para que el botón aparezca suavemente */
-.btn-visible {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    visibility: visible !important;
-}
-
-/* Efecto de desvanecimiento para toda la pantalla */
-.splash-fade-out {
-    opacity: 0;
-    pointer-events: none;
-}
-
     /* COLORS */
     :root{--g1:#1b4332;--g2:#2d6a4f;--g3:#52b788;--g4:#74c69d;--g5:#d8f3dc;}
 
@@ -164,44 +151,8 @@
       .chat-preview{max-width:100px;}
     }
   </style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const splash = document.getElementById('splash-screen');
-    const splashBtn = document.getElementById('btn-splash-continue');
-
-    // Muestra el botón después de 2 segundos
-    setTimeout(() => {
-      if(splashBtn) splashBtn.classList.add('btn-visible');
-    }, 2000);
-
-    // Al hacer clic, desvanece la pantalla
-    if(splashBtn) {
-      splashBtn.addEventListener('click', () => {
-        splash.classList.add('splash-fade-out');
-        setTimeout(() => {
-          splash.style.display = 'none';
-        }, 800);
-      });
-    }
-  });
-</script>
-  
 </head>
 <body>
-
-<!-- ══════════════════════ SPLASH SCREEN ══════════════════════ -->
-<div id="splash-screen" style="position:fixed; inset:0; z-index:9999; background:#fefab6; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease;">
-  <div style="text-align:center;">
-    <img src="lagunapp (1).png" alt="LagunApp Logo" style="width:300px; height:auto; display:block; margin: 0 auto;">
-    <h1 style="font-size:3.5rem; font-weight:800; color:#111; margin-top:20px; font-family:'Poppins', sans-serif;">LAGUNAPP</h1>
-    
-    <!-- Botón que aparecerá después -->
-    <button id="btn-splash-continue" style="margin-top:40px; opacity:0; transform:translateY(20px); transition: all 0.5s ease; visibility:hidden;" class="btn-g">
-      Seguir →
-    </button>
-  </div>
-</div>
 
 <!-- ══════════════════════ SCREEN: LOGIN ══════════════════════ -->
 <div id="sc-login" class="screen active" style="flex-direction:row;">
